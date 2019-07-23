@@ -1,0 +1,193 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: connectapp # NOTE: update this with your service name
+#app: your-app-name
+#tenant: your-tenant-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+custom:
+  webpackIncludeModules:
+    forceInclude:
+      - request
+# provider:
+#   name: aws
+#   runtime: nodejs10.x
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    # JWT_SECRET: ${self:custom.secrets.JWT_SECRET}
+    USERS_TABLE: { "Ref": "UsersDynamoTable" } 
+    # USERS_ACTIVITY_TABLE: { "Ref": "UserActivityDynamoTable"}
+    # FEED_TABLE: { "Ref": "FeedDynamoTable" }
+    MESSAGES_TABLE: { "Ref": "MessagesDynamoTable"}
+    # FORUMS_TABLE: { "Ref": "ForumsDynamoTable"}
+    EMAIL: "pratikmathur279@gmail.com"
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "*"
+
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 
+        # - { "Fn::GetAtt": ["ForumsDynamoTable", "Arn"] }
+        - { "Fn::GetAtt": ["MessagesDynamoTable", "Arn"] }
+        - { "Fn::GetAtt": ["UsersDynamoTable", "Arn"] }
+
+    - Effect: "Allow"
+      Action:
+        - "ses:SendEmail"
+      Resource: "*"
+
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors: true
+
+  createUser:
+    handler: auth/createUser.add
+    events:
+      - http:
+          path: register
+          method: post
+          cors: true
+
+  getUsers:
+    handler: auth/getUsers.list
+    events:
+      - http:
+          path: getUsers
+          method: get
+          cors: true
+
+#check if user is authenticated
+  checkUserAuth:
+    handler: auth/checkUserAuth.check
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
+#post messages
+  sendMessage:
+    handler: message/sendMessage.send
+    events:
+      - http:
+          path: message
+          method: post
+          cors: true
+
+  getMessages:
+    handler: message/getMessages.list
+    events:
+      - http:
+          path: messages
+          method: get
+          cors: true
+          
+resources:
+  Resources:
+    # ForumsDynamoTable:
+    #   Type: 'AWS::DynamoDB::Table'
+    #   DeletionPolicy: Delete
+    #   Properties:
+    #     AttributeDefinitions:
+    #       -
+    #         AttributeName: id
+    #         AttributeType: S
+    #     KeySchema:
+    #       -
+    #         AttributeName: id
+    #         KeyType: HASH
+    #     ProvisionedThroughput:
+    #       ReadCapacityUnits: 1
+    #       WriteCapacityUnits: 1
+    #     TableName: ${self:service}-forums
+
+    MessagesDynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-messages
+    
+    UsersDynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-users
