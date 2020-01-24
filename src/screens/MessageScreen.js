@@ -24,7 +24,6 @@ import Actions from '../actions/actions';
 
 let socket =  {}; 
         
-
 export default class ChatsScreen extends React.Component {
     static navigationOptions = ({navigation}) => ({
         title: 'Chats',
@@ -34,8 +33,6 @@ export default class ChatsScreen extends React.Component {
 
     constructor(props){
         super(props);
-        
-
         this.state = {
             height: 1,
             Message: {
@@ -57,23 +54,15 @@ export default class ChatsScreen extends React.Component {
     }
 
     async componentWillMount(){
+        let socket1 = this.props.navigation.getParam('socket');
+        let chat = this.props.navigation.getParam('chat');
+        console.log(chat);
+        socket = socket1;
         let temp = await AsyncStorage.getItem('userId');
         this.setState({currentUser: temp});
         this.getMessages();
          
         var self = this;
-
-        socket = socketIO('http://1ca5118e.ngrok.io', {      
-            transports: ['websocket'], jsonp: false }); 
-        socket.connect(); 
-        socket.on('connect', () => { 
-            console.log('connected to socket server');
-            // socket.emit('storeClientInfo'); 
-        });
-
-        socket.on('new', (data)=>{
-            console.log(data);
-        })
 
         socket.on('turn', function(data) {
             console.log(data);
@@ -81,11 +70,16 @@ export default class ChatsScreen extends React.Component {
         });
     }
 
+    componentWillReceiveProps(props){
+        console.log(props);
+    }
+
     getMessages(){
         this.actions.getMessages((res)=>{
             this.setState({messages: res})
         });
     }
+    
     keyboardOpen(){
         let state = Object.assign({}, this.state);
         state.height = 0.7;
@@ -133,10 +127,10 @@ export default class ChatsScreen extends React.Component {
     render(){
         return (
             <View style={{flex: this.state.height}}>
-              {/* <View>
+              <View>
                   <Text>Chats</Text>
                   <Logout logout={this.logout} />
-              </View> */}
+              </View>
               
                 <Messages scroll={this.scroll} currentUser={this.state.currentUser} messages={this.state.messages}/>
 

@@ -7,20 +7,44 @@ import {
     Text,
     TouchableOpacity,
     Button,
-    AsyncStorage,
     View,
   } from 'react-native';
 
-const Users = (props) => {
+const Users = ({users, selectedUser}) => {
     const buildRow = ( user) =>{ 
-        return <Text key={user.id}>{user.name}</Text>
+        let id = user.id;
+        return (
+            <TouchableOpacity key={user.id} id={user.id} style={styles.User} onPress={()=>selectedUser(user)}>
+                <Image source={require('../assets/images/robot-dev.png')} style={styles.Image} />
+                <Text style={styles.Name}>{user.name}</Text>
+            </TouchableOpacity>
+        );
     }
 
     return(
-        <View>
-            {props.users.map(buildRow)}
-        </View>
+        <ScrollView>
+            {users.map(buildRow)}
+        </ScrollView>
     );
 }
+
+const styles = StyleSheet.create({
+    User: {
+        flex: 1,
+        flexDirection: 'row',
+        paddingTop: 5,
+        justifyContent: 'center'
+    },
+    Image: {
+        width: 50, 
+        height: 50
+    },
+    Name: {
+        width: 300, 
+        height: 50,
+        paddingVertical: 15,
+        justifyContent: 'center'
+    }
+});
 
 export default Users;

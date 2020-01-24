@@ -1,65 +1,20 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 service: connectapp # NOTE: update this with your service name
 #app: your-app-name
 #tenant: your-tenant-name
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
 
 custom:
   webpackIncludeModules:
     forceInclude:
       - request
-# provider:
-#   name: aws
-#   runtime: nodejs10.x
 
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
 provider:
   name: aws
   runtime: nodejs8.10
   environment:
-    # JWT_SECRET: ${self:custom.secrets.JWT_SECRET}
     USERS_TABLE: { "Ref": "UsersDynamoTable" } 
-    # USERS_ACTIVITY_TABLE: { "Ref": "UserActivityDynamoTable"}
-    # FEED_TABLE: { "Ref": "FeedDynamoTable" }
+    CHATS_TABLE: { "Ref": "ChatsDynamoTable"}
     MESSAGES_TABLE: { "Ref": "MessagesDynamoTable"}
-    # FORUMS_TABLE: { "Ref": "ForumsDynamoTable"}
+    ONLINE_TABLE: { "Ref": "OnlineDynamoTable"}
     EMAIL: "pratikmathur279@gmail.com"
 
   iamRoleStatements:
@@ -78,9 +33,10 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: 
-        # - { "Fn::GetAtt": ["ForumsDynamoTable", "Arn"] }
+        - { "Fn::GetAtt": ["ChatsDynamoTable", "Arn"] }
         - { "Fn::GetAtt": ["MessagesDynamoTable", "Arn"] }
         - { "Fn::GetAtt": ["UsersDynamoTable", "Arn"] }
+        - { "Fn::GetAtt": ["OnlineDynamoTable", "Arn"] }
 
     - Effect: "Allow"
       Action:
@@ -138,25 +94,74 @@ functions:
           path: messages
           method: get
           cors: true
+
+  createChat:
+    handler: chats/createChat.create
+    events:
+      - http:
+          path: createChat
+          method: post
+          cors: true
+
+  getChats:
+    handler: chats/getChats.list
+    events:
+      - http:
+          path: chats
+          method: get
+          cors: true
+
+  userOnline:
+    handler: user/online.online
+    events:
+      - http:
+          path: online
+          method: post
+          cors: true
+
+  userOffline:
+    handler: user/offline.delete
+    events:
+      - http:
+          path: offline/{id}
+          method: delete
+          cors: true
           
 resources:
   Resources:
-    # ForumsDynamoTable:
-    #   Type: 'AWS::DynamoDB::Table'
-    #   DeletionPolicy: Delete
-    #   Properties:
-    #     AttributeDefinitions:
-    #       -
-    #         AttributeName: id
-    #         AttributeType: S
-    #     KeySchema:
-    #       -
-    #         AttributeName: id
-    #         KeyType: HASH
-    #     ProvisionedThroughput:
-    #       ReadCapacityUnits: 1
-    #       WriteCapacityUnits: 1
-    #     TableName: ${self:service}-forums
+    ChatsDynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-chats
+
+    OnlineDynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:service}-online
 
     MessagesDynamoTable:
       Type: 'AWS::DynamoDB::Table'

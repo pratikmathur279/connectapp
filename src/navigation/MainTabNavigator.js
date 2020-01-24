@@ -7,6 +7,8 @@ import HomeScreen from '../screens/HomeScreen';
 import LinksScreen from '../screens/LinksScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import MessageScreen from '../screens/MessageScreen';
+import CreateChatScreen from '../screens/CreateChatScreen';
 
 const config = Platform.select({
   web: { headerMode: 'screen' },
@@ -14,11 +16,9 @@ const config = Platform.select({
 });
 
 const ChatStack = createStackNavigator({
-  Home: {
-    screen: ChatsScreen,
-    config
-  },
-  
+    chats: ChatsScreen,
+    addChat: CreateChatScreen,
+    messages: MessageScreen
 });
 
 ChatStack.navigationOptions = {

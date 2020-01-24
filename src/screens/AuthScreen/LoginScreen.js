@@ -16,7 +16,7 @@ import Actions from '../../actions/actions';
 export default class LoginScreen extends React.Component {
     static navigationOptions = ({navigation}) => ({
         // title: 'Login',
-        headerStyle: { backgroundColor: '#2196f3' },
+        // headerStyle: { backgroundColor: '#2196f3' },
           headerTintColor: '#fff',
       });
 
@@ -37,7 +37,7 @@ export default class LoginScreen extends React.Component {
     }
 
     async componentWillMount(){
-        let temp = await AsyncStorage.getItem('userId') ? true : false;
+        let temp = await AsyncStorage.getItem('user') ? true : false;
         if(temp){
             this.props.navigation.navigate("Home", { onRefresh: this.refresh })
         }
@@ -62,9 +62,12 @@ export default class LoginScreen extends React.Component {
         this.actions.checkUserAuth(this.state.Login, async (res)=>{
             if(res.status === 200){
                 let isAdmin = (res.data.isAdmin === 1 ? true : false);
-                console.log(isAdmin);
-                let temp = await AsyncStorage.setItem('userId', (this.state.Login.username));
-                this.props.navigation.navigate("Home", { onRefresh: this.refresh });
+                
+                const user = {id: res.data.id, name: res.data.name, email: res.data.email, username: res.data.username};
+
+                // let temp = await AsyncStorage.setItem('userId', (this.state.Login.username));
+                let temp1 = await AsyncStorage.setItem('user', JSON.stringify(user));
+                this.props.navigation.navigate("Home", res.data);
             }
             else{
                 state.error = "Check your credentials"; 

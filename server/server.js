@@ -20,6 +20,9 @@ io.sockets.on('connection',
     console.log("We have a new client: " + socket.id);
     console.log("Available Player: " + availablePlayer);
     
+    io.sockets.connected[socket.id]
+        .emit('userConnect', socket.id);
+
     newPlayer(socket.id);
     socket.on('storeClientInfo', function (data) {
       
@@ -33,7 +36,7 @@ io.sockets.on('connection',
   socket.on('message',
       function(data) {
         io.sockets.connected[matches[socket.id]]
-        .emit('turn', true);
+        .emit('turn', matches[socket.id]);
       }
     );  
 
@@ -42,7 +45,7 @@ io.sockets.on('connection',
       if(availablePlayer == socket.id){
         availablePlayer = null;
         }else{
-          deleteMatch(socket.id);
+          // deleteMatch(socket.id);
         }
       for( var i=0, len=clients.length; i<len; ++i ){
         var c = clients[i];
@@ -60,9 +63,9 @@ function matchPlayers(player1, player2) {
 	matches[player2] = player1;
 
     io.sockets.connected[player1]
-        .emit('new', true);
+        .emit('available', "player1");
     io.sockets.connected[player2]
-        .emit('new', false);
+        .emit('available', "player2");
 
         
 }
